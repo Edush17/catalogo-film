@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Il Mio Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#141217;
+    --surface:#1E1A21;
+    --surface-raised:#272129;
+    --accent:#E8A33D;
+    --accent-soft:rgba(232,163,61,0.14);
+    --serie:#5B9C97;
+    --serie-soft:rgba(91,156,151,0.16);
+    --text:#F4EFE6;
+    --text-muted:#948D9A;
+    --border:#332D38;
+    --danger:#C0554A;
+    --danger-soft:rgba(192,85,74,0.14);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  button{font-family:inherit;}
+  ::selection{background:var(--accent-soft);}
+
+  .app{max-width:560px;margin:0 auto;padding-bottom:100px;min-height:100vh;position:relative;}
+
+  /* ---- signature: film sprocket strip ---- */
+  .filmstrip{
+    height:16px;
+    background-color:#08070a;
+    background-image:radial-gradient(circle at 12px 8px, var(--bg) 3.6px, transparent 4px);
+    background-size:24px 16px;
+    background-repeat:repeat-x;
+  }
+
+  header{padding:22px 20px 14px;}
+  .brand{
+    font-family:'Bebas Neue',sans-serif;
+    font-size:40px;
+    letter-spacing:2.5px;
+    color:var(--accent);
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand-icon-btn{
+    background:var(--surface);
+    border:1px solid var(--border);
+    width:40px;height:40px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-muted);
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .brand-icon-btn:hover{color:var(--accent);border-color:var(--accent);}
+  .brand-icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .brand-icon-btn svg{width:18px;height:18px;}
+
+  .subtitle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--text-muted);
+    letter-spacing:.5px;
+    margin-top:2px;
+  }
+
+  .search-row{padding:8px 20px 0;}
+  .search-box{
+    position:relative;
+    display:flex;align-items:center;
+  }
+  .search-box svg{
+    position:absolute;left:14px;width:17px;height:17px;color:var(--text-muted);pointer-events:none;
+  }
+  #searchInput{
+    width:100%;
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    border-radius:14px;
+    color:var(--text);
+    font-size:15px;
+    padding:13px 14px 13px 40px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  #searchInput::placeholder{color:var(--text-muted);}
+  #searchInput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+
+  .chips{display:flex;gap:8px;padding:12px 20px 4px;overflow-x:auto;}
+  .chip{
+    flex-shrink:0;
+    background:var(--surface);
+    border:1.5px solid var(--border);
+    color:var(--text-muted);
+    padding:7px 14px;
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:all .15s;
+  }
+  .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  .chip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
+
+  .list{padding:14px 16px 0;display:flex;flex-direction:column;gap:10px;}
+
+  .ticket-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:border-color .15s;
+  }
+  .ticket-card:hover{border-color:#463d4d;}
+  .ticket-top{display:flex;}
+  .ticket-main{flex:1;min-width:0;padding:13px 14px;}
+  .ticket-title{font-size:15.5px;font-weight:650;line-height:1.25;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+  .ticket-meta{display:flex;align-items:center;gap:7px;margin-top:7px;flex-wrap:wrap;}
+  .badge{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    font-weight:500;
+    padding:3px 8px;
+    border-radius:6px;
+    letter-spacing:.3px;
+  }
+  .badge-film{background:var(--accent-soft);color:var(--accent);}
+  .badge-serie{background:var(--serie-soft);color:var(--serie);}
+  .badge-muted{color:var(--text-muted);}
+
+  .ticket-stub{
+    width:96px;flex-shrink:0;
+    padding:13px 10px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+    border-left:2px dashed var(--border);
+    position:relative;
+  }
+  .ticket-stub::before,.ticket-stub::after{
+    content:"";position:absolute;left:-7px;width:14px;height:14px;background:var(--bg);border-radius:50%;
+  }
+  .ticket-stub::before{top:-7px;}
+  .ticket-stub::after{bottom:-7px;}
+  .disco-pill{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--text-muted);
+    background:var(--surface-raised);
+    padding:3px 8px;
+    border-radius:999px;
+    max-width:100%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    text-align:center;
+  }
+  .disco-more{font-size:10px;color:var(--text-muted);}
+
+  .ticket-detail{
+    border-top:1px dashed var(--border);
+    padding:12px 14px 14px;
+    background:var(--surface-raised);
+  }
+  .detail-group{margin-bottom:10px;}
+  .detail-group:last-child{margin-bottom:0;}
+  .detail-group-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.6px;
+    margin-bottom:5px;
+  }
+  .detail-file{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--text);
+    padding:5px 0;
+    border-bottom:1px solid var(--border);
+    word-break:break-word;
+  }
+  .detail-file:last-child{border-bottom:none;}
+  .detail-file .file-sub{color:var(--text-muted);font-size:10.5px;display:block;margin-top:2px;}
+  .remove-btn{
+    margin-top:10px;
+    background:none;border:1px solid var(--danger);color:var(--danger);
+    font-size:12px;font-weight:600;
+    padding:7px 12px;border-radius:8px;cursor:pointer;
+  }
+  .remove-btn.confirm{background:var(--danger-soft);}
+
+  .empty-state{
+    text-align:center;padding:70px 30px 20px;color:var(--text-muted);
+  }
+  .empty-state svg{width:52px;height:52px;color:var(--border);margin-bottom:14px;}
+  .empty-state h2{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:22px;color:var(--text);margin:0 0 8px;}
+  .empty-state p{font-size:13.5px;line-height:1.5;margin:0 0 18px;}
+
+  .btn-primary{
+    background:var(--accent);color:#1b1305;border:none;
+    font-weight:700;font-size:14px;
+    padding:12px 22px;border-radius:12px;cursor:pointer;
+  }
+  .btn-primary:focus-visible{outline:2px solid var(--text);outline-offset:2px;}
+
+  .fab{
+    position:fixed;right:20px;bottom:26px;
+    width:54px;height:54px;border-radius:50%;
+    background:var(--accent);color:#1b1305;border:none;
+    font-size:26px;line-height:1;
+    box-shadow:0 6px 18px rgba(0,0,0,.4);
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    max-width:560px;
+  }
+  .fab:focus-visible{outline:2px solid var(--text);outline-offset:3px;}
+
+  .sheet-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,.55);
+    display:none;align-items:flex-end;justify-content:center;z-index:50;
+  }
+  .sheet-backdrop.open{display:flex;}
+  .sheet{
+    background:var(--surface);
+    width:100%;max-width:560px;
+    border-radius:20px 20px 0 0;
+    padding:18px 20px calc(22px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--border);
+    max-height:85vh;overflow-y:auto;
+  }
+  .sheet h3{
+    font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:var(--accent);
+    margin:0 0 6px;
+  }
+  .sheet p{font-size:13px;color:var(--text-muted);line-height:1.5;margin:0 0 14px;}
+  .sheet label{display:block;font-size:12px;color:var(--text-muted);margin:12px 0 6px;font-weight:600;}
+  .sheet textarea{
+    width:100%;min-height:130px;background:var(--surface-raised);border:1.5px solid var(--border);
+    border-radius:10px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    padding:10px;resize:vertical;outline:none;
+  }
+  .sheet textarea:focus{border-color:var(--accent);}
+  .sheet input[type=text],.sheet select{
+    width:100%;background:var(--surface-raised);border:1.5px solid var(--border);
+    border-radius:10px;color:var(--text);font-size:14px;padding:11px;outline:none;
+  }
+  .sheet input:focus,.sheet select:focus{border-color:var(--accent);}
+  .sheet-actions{display:flex;gap:10px;margin-top:16px;}
+  .btn-ghost{
+    background:none;border:1px solid var(--border);color:var(--text-muted);
+    font-weight:600;font-size:13px;padding:11px 16px;border-radius:10px;cursor:pointer;flex:1;
+  }
+  .sheet-actions .btn-primary{flex:2;}
+  .sheet-msg{font-size:12.5px;margin-top:10px;padding:8px 10px;border-radius:8px;display:none;}
+  .sheet-msg.ok{display:block;background:rgba(91,156,151,.15);color:var(--serie);}
+  .sheet-msg.err{display:block;background:var(--danger-soft);color:var(--danger);}
+
+  .loading{padding:60px 20px;text-align:center;color:var(--text-muted);font-size:13px;}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none !important;}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="filmstrip"></div>
+  <header>
+    <div class="brand">
+      <span>IL MIO CINEMA</span>
+      <button class="brand-icon-btn" id="syncBtn" aria-label="Sincronizza catalogo" title="Sincronizza catalogo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      </button>
+    </div>
+    <div class="subtitle" id="statsLine">Carico il catalogo…</div>
+  </header>
+
+  <div class="search-row">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="searchInput" type="text" placeholder="Cerca un film o una serie…" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <button class="chip active" data-filter="Tutti">Tutti</button>
+    <button class="chip" data-filter="Film">Film</button>
+    <button class="chip" data-filter="Serie TV">Serie TV</button>
+  </div>
+
+  <div class="list" id="list"><div class="loading">Carico il catalogo…</div></div>
+</div>
+
+<button class="fab" id="fabAdd" aria-label="Aggiungi titolo manualmente" title="Aggiungi titolo">+</button>
+
+<!-- SYNC SHEET -->
+<div class="sheet-backdrop" id="syncBackdrop">
+  <div class="sheet">
+    <h3>SINCRONIZZA CATALOGO</h3>
+    <p>Carica direttamente il file <strong>catalogo_film_serie.csv</strong> generato dallo script.</p>
+    <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none">
+    <button class="btn-primary" id="csvFileBtn" style="width:100%;">Scegli file CSV…</button>
+    <p style="margin-top:14px;">Oppure incolla il testo direttamente:</p>
+    <textarea id="csvInput" placeholder="Titolo,Tipo,Anno,Stagione/Episodio,Nome File,..."></textarea>
+    <div class="sheet-msg" id="syncMsg"></div>
+    <div class="sheet-actions">
+      <button class="btn-ghost" id="syncCancel">Chiudi</button>
+      <button class="btn-primary" id="syncConfirm">Sincronizza da testo</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:20px 0 14px;">
+    <p style="margin-bottom:10px;"><strong style="color:var(--text);">Trasferisci tra dispositivi</strong><br>Esporta un backup dal PC e importalo sull'iPhone (via AirDrop, iCloud Drive, email...), o viceversa.</p>
+    <input type="file" id="jsonFileInput" accept=".json,application/json" style="display:none">
+    <div class="sheet-actions" style="margin-top:0;">
+      <button class="btn-ghost" id="exportBtn">Esporta backup</button>
+      <button class="btn-ghost" id="importBackupBtn">Importa backup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SHEET -->
+<div class="sheet-backdrop" id="addBackdrop">
+  <div class="sheet">
+    <h3>AGGIUNGI TITOLO</h3>
+    <p>Per aggiunte veloci, senza rilanciare lo script (es. un file scaricato al volo).</p>
+    <label for="addTitolo">Titolo</label>
+    <input type="text" id="addTitolo" placeholder="Es. Le ali della libertà">
+    <label for="addTipo">Tipo</label>
+    <select id="addTipo">
+      <option value="Film">Film</option>
+      <option value="Serie TV">Serie TV</option>
+    </select>
+    <label for="addAnno">Anno (facoltativo)</label>
+    <input type="text" id="addAnno" placeholder="Es. 1994">
+    <label for="addDisco">Disco</label>
+    <input type="text" id="addDisco" placeholder="Es. HD_Nero_1TB">
+    <div class="sheet-msg" id="addMsg"></div>
+    <div class="sheet-actions">
+      <button class="btn-ghost" id="addCancel">Annulla</button>
+      <button class="btn-primary" id="addConfirm">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var state = { rows: [], search: '', filter: 'Tutti', expandedKey: null, confirmRemoveKey: null };
+
+  var listEl = document.getElementById('list');
+  var statsEl = document.getElementById('statsLine');
+
+  var STORAGE_KEY = 'catalogo_film_serie_rows';
+
+  async function loadData(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      state.rows = raw ? JSON.parse(raw) : [];
+    }catch(e){
+      state.rows = [];
+    }
+    render();
+
+    // Se non ci sono ancora dati salvati (primo avvio su questo dispositivo,
+    // o localStorage svuotato), prova a scaricare automaticamente il CSV
+    // dalla stessa cartella in cui si trova questa pagina.
+    if(state.rows.length === 0){
+      try{
+        var resp = await fetch('catalogo_film_serie.csv', {cache: 'no-store'});
+        if(resp.ok){
+          var text = await resp.text();
+          var parsed = csvToRows(text);
+          if(parsed && parsed.length){
+            await saveData(parsed);
+            render();
+          }
+        }
+      }catch(e){
+        // Nessuna connessione o CSV non raggiungibile: l'utente può sempre
+        // caricarlo manualmente con il pulsante "Scegli file CSV…".
+      }
+    }
+  }
+
+  async function saveData(rows){
+    state.rows = rows;
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // ---------- CSV parsing ----------
+  function parseCSV(text){
+    text = text.replace(/^\uFEFF/, '').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+    var firstLine = text.split('\n')[0] || '';
+    var tabCount = (firstLine.match(/\t/g)||[]).length;
+    var commaCount = (firstLine.match(/,/g)||[]).length;
+    var rows = [];
+    if(tabCount > commaCount){
+      text.split('\n').forEach(function(line){
+        if(line.trim() === '') return;
+        rows.push(line.split('\t'));
+      });
+      return rows;
+    }
+    var row=[], field='', inQuotes=false;
+    for(var i=0;i<text.length;i++){
+      var c = text[i];
+      if(inQuotes){
+        if(c === '"'){
+          if(text[i+1] === '"'){ field+='"'; i++; }
+          else { inQuotes = false; }
+        } else field += c;
+      } else {
+        if(c === '"') inQuotes = true;
+        else if(c === ','){ row.push(field); field=''; }
+        else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+        else field += c;
+      }
+    }
+    if(field.length>0 || row.length>0){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return !(r.length===1 && r[0].trim()===''); });
+  }
+
+  function csvToRows(text){
+    var table = parseCSV(text);
+    if(table.length < 1) return null;
+    var headers = table[0].map(function(h){ return h.trim(); });
+    var required = ['Titolo','Disco'];
+    var ok = required.every(function(r){ return headers.indexOf(r) !== -1; });
+    if(!ok) return null;
+    var out = [];
+    for(var i=1;i<table.length;i++){
+      var cells = table[i];
+      if(cells.length===1 && cells[0].trim()==='') continue;
+      var obj = {};
+      headers.forEach(function(h, idx){ obj[h] = (cells[idx]||'').trim(); });
+      if(obj['Titolo']) out.push(obj);
+    }
+    return out;
+  }
+
+  // ---------- Grouping ----------
+  function groupKey(r){ return (r['Tipo']||'Film') + '||' + (r['Titolo']||'').trim().toLowerCase(); }
+
+  function formatSeasonLabel(s){
+    var n = parseInt(s, 10);
+    return (!isNaN(n) && String(n) === s.trim()) ? ('S' + n) : s;
+  }
+
+  function sortSeasons(seasons){
+    var nums = [], others = [];
+    seasons.forEach(function(s){
+      var n = parseInt(s, 10);
+      if(!isNaN(n) && String(n) === s.trim()) nums.push(n); else others.push(s);
+    });
+    nums.sort(function(a,b){ return a-b; });
+    others.sort();
+    return nums.map(String).concat(others);
+  }
+
+  function getGroups(){
+    var map = {};
+    state.rows.forEach(function(r){
+      var k = groupKey(r);
+      if(!map[k]) map[k] = { key:k, titolo:r['Titolo'], tipo:r['Tipo']||'Film', anno:r['Anno']||'', rows:[] };
+      map[k].rows.push(r);
+      if(!map[k].anno && r['Anno']) map[k].anno = r['Anno'];
+    });
+    return Object.values(map);
+  }
+
+  function uniqueDiscs(rows){
+    var seen = [];
+    rows.forEach(function(r){ if(r['Disco'] && seen.indexOf(r['Disco'])===-1) seen.push(r['Disco']); });
+    return seen;
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // ---------- Render ----------
+  function render(){
+    var discsAll = uniqueDiscs(state.rows);
+    var titlesAll = getGroups().length;
+    statsEl.textContent = state.rows.length === 0
+      ? 'Nessun titolo ancora — sincronizza per iniziare'
+      : titlesAll + ' titoli · ' + discsAll.length + ' disch' + (discsAll.length===1?'o':'i');
+
+    var groups = getGroups();
+
+    if(state.filter !== 'Tutti'){
+      groups = groups.filter(function(g){ return g.tipo === state.filter; });
+    }
+    var q = state.search.trim().toLowerCase();
+    if(q){
+      groups = groups.filter(function(g){
+        if(g.titolo.toLowerCase().indexOf(q) !== -1) return true;
+        return g.rows.some(function(r){
+          return (r['Disco']||'').toLowerCase().indexOf(q) !== -1 ||
+                 (r['Nome File']||'').toLowerCase().indexOf(q) !== -1;
+        });
+      });
+    }
+    groups.sort(function(a,b){ return a.titolo.localeCompare(b.titolo, 'it'); });
+
+    if(state.rows.length === 0){
+      listEl.innerHTML =
+        '<div class="empty-state">'+
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 9h5M2 15h5M17 9h5M17 15h5"/></svg>'+
+          '<h2>Il catalogo è vuoto</h2>'+
+          '<p>Incolla qui il contenuto del file CSV generato dallo script per iniziare a cercare i tuoi film e le tue serie.</p>'+
+          '<button class="btn-primary" id="emptyImportBtn">Importa il catalogo</button>'+
+        '</div>';
+      var eb = document.getElementById('emptyImportBtn');
+      if(eb) eb.addEventListener('click', openSyncSheet);
+      return;
+    }
+
+    if(groups.length === 0){
+      listEl.innerHTML = '<div class="empty-state"><h2>Nessun risultato</h2><p>Nessun titolo corrisponde alla ricerca.</p></div>';
+      return;
+    }
+
+    listEl.innerHTML = groups.map(function(g){
+      var discs = uniqueDiscs(g.rows);
+      var expanded = state.expandedKey === g.key;
+      var badgeClass = g.tipo === 'Serie TV' ? 'badge-serie' : 'badge-film';
+
+      var seasonsRaw = [];
+      if(g.tipo === 'Serie TV'){
+        g.rows.forEach(function(r){ if(r['Stagione'] && seasonsRaw.indexOf(r['Stagione'])===-1) seasonsRaw.push(r['Stagione']); });
+      }
+      var seasonsSorted = sortSeasons(seasonsRaw);
+      var seasonsBadge = g.tipo === 'Serie TV'
+        ? (seasonsSorted.length ? seasonsSorted.map(formatSeasonLabel).join(', ') : (g.rows.length + ' ep.'))
+        : '';
+      var episodeCountBadge = (g.tipo === 'Serie TV' && seasonsSorted.length) ? (g.rows.length + ' ep.') : '';
+
+      var stubHtml = discs.slice(0,2).map(function(d){
+        return '<span class="disco-pill">'+escapeHtml(d)+'</span>';
+      }).join('');
+      if(discs.length > 2){ stubHtml += '<span class="disco-more">+'+(discs.length-2)+' altri</span>'; }
+
+      var detailHtml = '';
+      if(expanded){
+        var filesHtml;
+        if(g.tipo === 'Serie TV' && seasonsSorted.length){
+          var bySeason = {};
+          g.rows.forEach(function(r){
+            var s = r['Stagione'] || '';
+            if(!bySeason[s]) bySeason[s] = [];
+            bySeason[s].push(r);
+          });
+          var orderedKeys = seasonsSorted.slice();
+          if(bySeason['']) orderedKeys.push('');
+          filesHtml = orderedKeys.map(function(sKey){
+            var seasonItems = (bySeason[sKey]||[]).slice().sort(function(a,b){
+              return (a['Stagione/Episodio']||a['Nome File']||'').localeCompare(b['Stagione/Episodio']||b['Nome File']||'');
+            });
+            var label = sKey ? 'Stagione ' + formatSeasonLabel(sKey).replace(/^S/, '') : 'Altri episodi';
+            var rowsHtml = seasonItems.map(function(r){
+              var tag = r['Stagione/Episodio'] ? escapeHtml(r['Stagione/Episodio'])+' · ' : '';
+              return '<div class="detail-file">'+tag+escapeHtml(r['Nome File']||'')+
+                '<span class="file-sub">'+escapeHtml(r['Disco']||'')+(r['Cartella'] && r['Cartella'] !== '.' ? ' / '+escapeHtml(r['Cartella']) : '')+'</span></div>';
+            }).join('');
+            return '<div class="detail-group"><div class="detail-group-label">'+escapeHtml(label)+' ('+seasonItems.length+')</div>'+rowsHtml+'</div>';
+          }).join('');
+        } else {
+          var flatItems = g.rows.slice().sort(function(a,b){
+            return (a['Stagione/Episodio']||'').localeCompare(b['Stagione/Episodio']||'');
+          });
+          var flatRowsHtml = flatItems.map(function(r){
+            var tag = r['Stagione/Episodio'] ? escapeHtml(r['Stagione/Episodio'])+' · ' : '';
+            return '<div class="detail-file">'+tag+escapeHtml(r['Nome File']||'')+
+              '<span class="file-sub">'+escapeHtml(r['Disco']||'')+(r['Cartella'] && r['Cartella'] !== '.' ? ' / '+escapeHtml(r['Cartella']) : '')+'</span></div>';
+          }).join('');
+          filesHtml = '<div class="detail-group"><div class="detail-group-label">File ('+g.rows.length+')</div>'+flatRowsHtml+'</div>';
+        }
+
+        var confirming = state.confirmRemoveKey === g.key;
+        detailHtml = '<div class="ticket-detail">'+
+          filesHtml+
+          '<button class="remove-btn'+(confirming?' confirm':'')+'" data-remove="'+g.key+'">'+
+            (confirming ? 'Tocca di nuovo per confermare' : 'Rimuovi dal catalogo')+
+          '</button>'+
+        '</div>';
+      }
+
+      return '<div class="ticket-card" data-key="'+g.key+'">'+
+        '<div class="ticket-top">'+
+          '<div class="ticket-main">'+
+            '<div class="ticket-title">'+escapeHtml(g.titolo)+'</div>'+
+            '<div class="ticket-meta">'+
+              '<span class="badge '+badgeClass+'">'+escapeHtml(g.tipo)+'</span>'+
+              (g.anno ? '<span class="badge badge-muted">'+escapeHtml(g.anno)+'</span>' : '')+
+              (seasonsBadge ? '<span class="badge badge-muted">'+escapeHtml(seasonsBadge)+'</span>' : '')+
+              (episodeCountBadge ? '<span class="badge badge-muted">'+episodeCountBadge+'</span>' : '')+
+            '</div>'+
+          '</div>'+
+          '<div class="ticket-stub">'+stubHtml+'</div>'+
+        '</div>'+
+        detailHtml+
+      '</div>';
+    }).join('');
+  }
+
+  // ---------- Events ----------
+  document.getElementById('searchInput').addEventListener('input', function(e){
+    state.search = e.target.value; render();
+  });
+
+  document.getElementById('chips').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(!chip) return;
+    document.querySelectorAll('.chip').forEach(function(c){ c.classList.remove('active'); });
+    chip.classList.add('active');
+    state.filter = chip.dataset.filter;
+    render();
+  });
+
+  listEl.addEventListener('click', function(e){
+    var removeBtn = e.target.closest('[data-remove]');
+    if(removeBtn){
+      e.stopPropagation();
+      var key = removeBtn.dataset.remove;
+      if(state.confirmRemoveKey === key){
+        var remaining = state.rows.filter(function(r){ return groupKey(r) !== key; });
+        state.confirmRemoveKey = null;
+        state.expandedKey = null;
+        saveData(remaining).then(render);
+      } else {
+        state.confirmRemoveKey = key;
+        render();
+      }
+      return;
+    }
+    var card = e.target.closest('.ticket-card');
+    if(!card) return;
+    var key = card.dataset.key;
+    state.expandedKey = (state.expandedKey === key) ? null : key;
+    state.confirmRemoveKey = null;
+    render();
+  });
+
+  // ---------- Sync sheet ----------
+  var syncBackdrop = document.getElementById('syncBackdrop');
+  function openSyncSheet(){ syncBackdrop.classList.add('open'); document.getElementById('syncMsg').className='sheet-msg'; }
+  function closeSyncSheet(){ syncBackdrop.classList.remove('open'); }
+  document.getElementById('syncBtn').addEventListener('click', openSyncSheet);
+  document.getElementById('syncCancel').addEventListener('click', closeSyncSheet);
+  syncBackdrop.addEventListener('click', function(e){ if(e.target === syncBackdrop) closeSyncSheet(); });
+
+  document.getElementById('csvFileBtn').addEventListener('click', function(){
+    document.getElementById('csvFileInput').click();
+  });
+  document.getElementById('csvFileInput').addEventListener('change', async function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var msg = document.getElementById('syncMsg');
+    try{
+      var text = await file.text();
+      var parsed = csvToRows(text);
+      if(!parsed){ msg.textContent='Il file non contiene le colonne "Titolo" e "Disco".'; msg.className='sheet-msg err'; return; }
+      var ok = await saveData(parsed);
+      if(ok){
+        msg.textContent = 'Catalogo sincronizzato: '+parsed.length+' file.';
+        msg.className = 'sheet-msg ok';
+        render();
+        setTimeout(closeSyncSheet, 900);
+      } else {
+        msg.textContent = 'Errore durante il salvataggio.'; msg.className='sheet-msg err';
+      }
+    }catch(err){
+      msg.textContent = 'Non riesco a leggere il file selezionato.'; msg.className='sheet-msg err';
+    }
+    e.target.value = '';
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', function(){
+    var data = JSON.stringify(state.rows, null, 2);
+    var blob = new Blob([data], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'catalogo_backup.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importBackupBtn').addEventListener('click', function(){
+    document.getElementById('jsonFileInput').click();
+  });
+  document.getElementById('jsonFileInput').addEventListener('change', async function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var msg = document.getElementById('syncMsg');
+    try{
+      var text = await file.text();
+      var parsed = JSON.parse(text);
+      if(!Array.isArray(parsed)) throw new Error('formato non valido');
+      var ok = await saveData(parsed);
+      if(ok){
+        msg.textContent = 'Backup importato: '+parsed.length+' file.';
+        msg.className = 'sheet-msg ok';
+        render();
+      } else {
+        msg.textContent = 'Errore durante il salvataggio.'; msg.className='sheet-msg err';
+      }
+    }catch(err){
+      msg.textContent = 'File di backup non valido.'; msg.className='sheet-msg err';
+    }
+    e.target.value = '';
+  });
+
+  document.getElementById('syncConfirm').addEventListener('click', async function(){
+    var msg = document.getElementById('syncMsg');
+    var text = document.getElementById('csvInput').value;
+    if(!text.trim()){ msg.textContent='Incolla prima il contenuto del CSV.'; msg.className='sheet-msg err'; return; }
+    var parsed = csvToRows(text);
+    if(!parsed){ msg.textContent='Non riesco a leggere questo testo: mancano le colonne "Titolo" o "Disco".'; msg.className='sheet-msg err'; return; }
+    var success = await saveData(parsed);
+    if(success){
+      msg.textContent = 'Catalogo sincronizzato: '+parsed.length+' file.';
+      msg.className = 'sheet-msg ok';
+      render();
+      setTimeout(closeSyncSheet, 900);
+    } else {
+      msg.textContent = 'Errore durante il salvataggio. Riprova.';
+      msg.className = 'sheet-msg err';
+    }
+  });
+
+  // ---------- Add sheet ----------
+  var addBackdrop = document.getElementById('addBackdrop');
+  document.getElementById('fabAdd').addEventListener('click', function(){
+    addBackdrop.classList.add('open');
+    document.getElementById('addMsg').className='sheet-msg';
+  });
+  document.getElementById('addCancel').addEventListener('click', function(){ addBackdrop.classList.remove('open'); });
+  addBackdrop.addEventListener('click', function(e){ if(e.target === addBackdrop) addBackdrop.classList.remove('open'); });
+
+  document.getElementById('addConfirm').addEventListener('click', async function(){
+    var msg = document.getElementById('addMsg');
+    var titolo = document.getElementById('addTitolo').value.trim();
+    var disco = document.getElementById('addDisco').value.trim();
+    if(!titolo || !disco){ msg.textContent='Titolo e disco sono obbligatori.'; msg.className='sheet-msg err'; return; }
+    var newRow = {
+      'Titolo': titolo,
+      'Tipo': document.getElementById('addTipo').value,
+      'Anno': document.getElementById('addAnno').value.trim(),
+      'Stagione/Episodio': '',
+      'Nome File': titolo,
+      'Cartella': '',
+      'Estensione': '',
+      'Dimensione (MB)': '',
+      'Disco': disco,
+      'Percorso Completo': '',
+      'Data Scansione': new Date().toISOString().slice(0,10)
+    };
+    var updated = state.rows.concat([newRow]);
+    var success = await saveData(updated);
+    if(success){
+      msg.textContent = 'Aggiunto al catalogo.';
+      msg.className = 'sheet-msg ok';
+      render();
+      document.getElementById('addTitolo').value='';
+      document.getElementById('addAnno').value='';
+      document.getElementById('addDisco').value='';
+      setTimeout(function(){ addBackdrop.classList.remove('open'); }, 700);
+    } else {
+      msg.textContent = 'Errore durante il salvataggio. Riprova.';
+      msg.className = 'sheet-msg err';
+    }
+  });
+
+  loadData();
+})();
+</script>
+</body>
+</html>
